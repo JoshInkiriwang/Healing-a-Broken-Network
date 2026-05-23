@@ -1,10 +1,12 @@
+# Healing a Broken Network
+
 ## Overview
-## Business Problem
+## The Problem
 ## Proposed Architecture
 ## Key Design Decisions
 ## Technologies Used
 ## Network Topology
-## VLAN Design
+## VLAN Design & IP Addressing
 ## Configuration Highlights
 ## Simulation Limitations
 ## Future Considerations
