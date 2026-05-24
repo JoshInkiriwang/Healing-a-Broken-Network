@@ -208,6 +208,14 @@ ephone-dn 2
  number 102
 ```
 
+### Full device configurations are available in the ['/configs'](./configs) directory: 
+- [Router Core](./configs/router-core.txt)
+- [Switch Core](./configs/switch-core.txt)
+- [Servers Switch](./configs/servers-switch.txt)
+- [Floor 1-5 Switch](./configs/fl1-5-switch.txt)
+- [Floor 6-10 Switch](./configs/fl6-10-switch.txt)
+
+
 ## Simulation Limitations
 Cisco Packet Tracer imposes several constraints that differ from real-world deployment, and documenting them honestly is part of treating this project as a genuine engineering proposal rather than a simulation exercise.
 
