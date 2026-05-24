@@ -30,12 +30,25 @@ Replacing 10 rented public Class C blocks with a single private 172.16.0.0/16 bl
 __Dedicated DHCP Server instead of Router or Switch__ <br>
 An early design decision was to centralize DHCP on a dedicated server in VLAN 60 rather than running it on the router or the Layer 3 switch. In a healthcare environment, DHCP is a critical service because IP phones, wireless clients, and clinical devices all depend on it for connectivity. Hosting DHCP on dedicated server separates the service fro the network infrastructure, meaning a router restart or switch reload does not interrupt IP address assignment for active devices. In a production deployment this server would be paired with a secondary DHCP server for high availability, which was noted as a future consideration given Packet Tracer simulation constraints.
 
-__Redundant Uplinks on All Backbone Connections__
+__Redundant Uplinks on All Backbone Connections__ <br>
 Given that the original network had zero redundancy and that high availability was identified as non-negotiable business requirement, redundant uplinks were implemented on every backbone connection including router to core switch and core switch to each access switch. Spanning Tree Protocol manages the redundant paths by keeping one active and one in standby, with automatic failover if the primary link fails. This was treated as a core design requirement than an optional enhancement, reflecting the reality that in a clinical environment a network outage is an operational emergency.
 
-
-
 ## Technologies Used
+
+| Category  | Technology |
+| --------- | ---------- |
+| Simulation | Cisco Packet Tracer |
+| Routing Protocol | OSPF Single-Area |
+| Switching | IEEE 802.1Q VLAN Trunking, Spanning Tree Protocol |
+| IP Addressing | RFC1918 Private Addressing, VLSM |
+| DHCP | Dedicated DHCP Server with DHCp Relay (ip helper-address) |
+| Network Address Translation | NAT/PAT (PAT overload) |
+| Wireless | WPA3 Enterprise 802.1X with RADIUS, Captive Portal |
+| VoIP | Cisco Call Manager Express, DHCP Option 150 |
+| Access Control | Extended Named ACL |
+| Network Management | Centralized Network Controller, VLAN 70 Management Segment |
+| Devices | Cisco 2811, Cisco 3650-24PS, Cisco 2960-24TT, Cisco IP Phone 7960, Access Point PT |
+
 ## Network Topology
 ## VLAN Design & IP Addressing
 ## Configuration Highlights
