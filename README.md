@@ -18,6 +18,23 @@ Three access switches sit at the bottom of the hierarchy, each serving a dedicat
 The router is deliberately kept out of internal routing decisions. All inter-VLAN traffic is handled locally by the Layer 3 switch, meaning clinical staff accessing electronic health records, radiology systems, or patient information never experience the latency of traversing a WAN-edge device for internal requests. The router only processes traffic that is genuinely destined for the internet, which is then translated via PAT to a single public IP address before leaving the network, eliminating the need for multiple rented public address blocks from the ISP.
 
 ## Key Design Decisions
+__Keeping OSPF Instead of Replacing It__
+The original case brief expressed a desire to move away from OSPF toward something easier to manage, After analysis, the conclusion was that OSPF itself was never the problem. THe real source of operational complexity was the flat topology forcing all routing through a single device without hierarchy. Rather than introducing a new protocol and its associated learning curve, the architecture was redesign around OSPF so that it runs only between the router and the core Layer 3 switch in a single-area configuration. Single-area OSPF is significantly easier to configure, troubleshoot and maintain compared to multi-area OSPF, and it is more than sufficient for a network of this scale. The result is that OSPF become simpler to manage not by replacement but by giving it a better environment to operate in
+
+__Function-Based VLAN Segmentation instead of Floor-Based__
+The original network segmented by floor location, which seems intuitive but falls in a hospital environment where clinical staff move constantly between floors and need consistent network access regardless of physical location. The proposed design segments by function instead, meaning a doctor connecting from floor 6 to floor 9 lands on the same Staff WLAN VLAN with the same access rights, the same QoS policy, and the same ACL enforcement. This approach also makes security policy significantly cleaner because each VLAN represents a homogeneous group of devices with identical access requirements, making ACL rules precise and auditable rather than broad and approximate.
+
+__RFC1918 Private Addressing with VLSM__
+Replacing 10 rented public Class C blocks with a single private 172.16.0.0/16 block eliminate ISP depedency for internal addressing entirely. VLSM allows each subnet to be sized proportionally to its actual host count while maintaining a reasonable growth buffer, replacing a 10.9% utilization rate with a scheme where every address block serves a defined purpose. NAT/PAT at the router edge means only one public IP address is needed for all outbound internet traffic from 278 internal devices.
+
+__Dedicated DHCP Server instead of Router or Switch__
+An early design decision was to centralize DHCP on a dedicated server in VLAN 60 rather than running it on the router or the Layer 3 switch. In a healthcare environment, DHCP is a critical service because IP phones, wireless clients, and clinical devices all depend on it for connectivity. Hosting DHCP on dedicated server separates the service fro the network infrastructure, meaning a router restart or switch reload does not interrupt IP address assignment for active devices. In a production deployment this server would be paired with a secondary DHCP server for high availability, which was noted as a future consideration given Packet Tracer simulation constraints.
+
+__Redundant Uplinks on All Backbone Connections__
+Given that the original network had zero redundancy and that high availability was identified as non-negotiable business requirement, redundant uplinks were implemented on every backbone connection including router to core switch and core switch to each access switch. Spanning Tree Protocol manages the redundant paths by keeping one active and one in standby, with automatic failover if the primary link fails. This was treated as a core design requirement than an optional enhancement, reflecting the reality that in a clinical environment a network outage is an operational emergency.
+
+
+
 ## Technologies Used
 ## Network Topology
 ## VLAN Design & IP Addressing
