@@ -1,0 +1,129 @@
+!
+version 15.1
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname core_router
+!
+!
+!
+!
+!
+!
+!
+!
+no ip cef
+no ipv6 cef
+!
+!
+!
+!
+license udi pid CISCO2811/K9 sn FTX1017GS2K-
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 172.16.50.254 255.255.255.128
+!
+interface FastEthernet0/0
+ ip address 200.100.1.1 255.255.255.0
+ ip nat outside
+ duplex auto
+ speed auto
+!
+interface FastEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface GigabitEthernet0/0/0
+ no ip address
+!
+interface GigabitEthernet0/1/0
+ ip address 172.16.80.1 255.255.255.252
+ ip nat inside
+!
+interface GigabitEthernet0/2/0
+ ip address 172.16.80.5 255.255.255.252
+ ip nat inside
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+interface Vlan50
+ mac-address 0060.3e61.d001
+ no ip address
+ ip helper-address 172.16.80.1
+!
+router ospf 1
+ log-adjacency-changes
+ network 172.16.80.0 0.0.0.3 area 0
+ network 172.16.80.4 0.0.0.3 area 0
+ default-information originate
+!
+ip nat inside source list 1 interface FastEthernet0/0 overload
+ip classless
+ip route 0.0.0.0 0.0.0.0 200.100.1.2 
+!
+ip flow-export version 9
+!
+!
+access-list 1 permit 172.16.0.0 0.0.255.255
+!
+!
+!
+!
+!
+telephony-service
+ max-ephones 10
+ max-dn 10
+ ip source-address 172.16.50.254 port 2000
+ auto assign 1 to 10
+!
+ephone-dn 1
+ number 101
+!
+ephone-dn 2
+ number 102
+!
+ephone 1
+ device-security-mode none
+ mac-address 0001.96C6.1232
+ type 7960
+ button 1:1
+!
+ephone 2
+ device-security-mode none
+ mac-address 00D0.5892.C599
+ type 7960
+ button 1:2
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+!
+end
+
