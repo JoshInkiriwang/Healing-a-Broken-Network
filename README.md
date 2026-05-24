@@ -50,6 +50,29 @@ Given that the original network had zero redundancy and that high availability w
 | Devices | Cisco 2811, Cisco 3650-24PS, Cisco 2960-24TT, Cisco IP Phone 7960, Access Point PT |
 
 ## Network Topology
+The network topology is organized into three distinct functional segments connected through a hierarchical core, each serving a dedicated role in the overall architecture. The diagram below represent the proposed topology as simulated in Cisco Packet Tracer.
+
+__Current Topology (Before)__ <br>
+(Coming Soon screenshot of current flat topology)
+The current topology shows all ten floor segments connecting directly to a single core router that simultaneously handles WAN connectivity, with no Layer 3 Switching, no redundancy, and no segmentation beyond per-floor subnets.
+
+__Proposed Topology (After)__ <br>
+(Coming soon also haha)
+The proposed topology introduces a clear three-device hierarchy where the router handles only WAN and NAT/PAT, the Layer 3 switch handles all inter-VLAN routing and internal forwarding, and access switches serve their respective segments with redundant uplinks throughout the backbone. All port assignments and connection labels are documented directly on the topology diagram for clarity.
+
+__Port Mapping Reference__ <br>
+
+| Interface  | Device A | Device B |
+| --------- | -------- | -------- |
+| Gig1/1/1 and Gig1/1/2 | Switch Layer 3 | Router Core (redundant) |
+| Gig1/0/2 and Gig 1/0/22 | Switch Layer 3 | Servers Switch (redundant) |
+| Gig1/0/3 and Gig 1/0/23 | Switch Layer 3 | Switch Lantai 1-5 (redundant) |
+| Gig1/0/4 and Gig 1/0/24 | Switch Layer 3 | Switch Lantai 6-10 (redundant) |
+| Gig0/1 and Gig 0/2 | Servers Switch | Switch Layer 3 (uplink) |
+| Gig0/1 and Gig 0/2 | Switch Lantai 1-5 | Switch Layer 3 (uplink) |
+| Gig0/1 and Gig 0/2 | Switch Lantai 6-10 | Switch Layer 3 (uplink) |
+| Fa0/0 | Router Core | Internet / WAN |
+
 ## VLAN Design & IP Addressing
 ## Configuration Highlights
 ## Simulation Limitations
