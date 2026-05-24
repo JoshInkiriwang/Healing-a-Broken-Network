@@ -1,5 +1,11 @@
 # Healing a Broken Network
 
+![Cisco Packet Tracer](https://img.shields.io/badge/Cisco-Packet%20Tracer-1BA0D7?style=for-the-badge&logo=cisco&logoColor=white)
+![OSPF](https://img.shields.io/badge/Routing-OSPF-green?style=for-the-badge)
+![VoIP](https://img.shields.io/badge/VoIP-Cisco%20CME-orange?style=for-the-badge)
+![VLANs](https://img.shields.io/badge/Segmentation-7%20VLANs-blue?style=for-the-badge)
+![NAT](https://img.shields.io/badge/NAT-PAT%20Overload-red?style=for-the-badge)
+
 ## Overview
 This project is an enterprise network modernization case study for Harshborough hospital, a 10-floor medical facility with 263 clients and 15 servers experiencing critical infrastructure limitations. The existing network relied on a single flat-topology router handling all internal and WAN traffic, with no segmentation, no redundancy, and inefficient use of public IP addressing. This project proposes and simulates a complete network redesign using Cisco Packet Tracer, covering hierarchical architecture, VLAN segmentation, VoIP, WLAN, routing, NAT/PAT, and access control, treated not as an academic exercise, but as a real enterprise architecture proposal.
 
