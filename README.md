@@ -74,7 +74,32 @@ __Port Mapping Reference__ <br>
 | Fa0/0 | Router Core | Internet / WAN |
 
 ## VLAN Design & IP Addressing
+The network migrates from ten public Class C blocks to single private 172.16.0.0/16 block segmented into seven function-based VLANs using VLSM. Each VLAN represents a homogeneous group of devices with identical access requirements, security policies, and traffic characteristics, making ACL enforcement, QoS configuration, and troubleshooting significantly more straightforward compared to original floor-based scheme
+
+| VLAN ID | Name | Subnet | Capacity | Gateway | Purpose |
+| ------- | ---- | ------ | -------- | ------- | ------- |
+| 10 | Staff Wired | 172.16.10.0/24 | 254 hosts | 172.16.10.1 | Administrative and operational staff workstations across all floors |
+| 20 | Inpatient | 172.16.20.0/25 | 126 hosts | 172.16.20.1 | Nurse stations and clinical terminal on floors 6 to 10 |
+| 30 | Staff WLAN | 172.16.30.0/24 | 254 hosts | 172.16.30.1 | Wireless access for doctors and nurses with roaming across all floors |
+| 40 | Guest WLAN | 172.16.40.0/24 | 254 hosts | 172.16.40.1 | Internet-only access for patients and visitors, isolated from internal network |
+| 50 | VoIP | 172.16.50.0/25 | 126 hosts | 172.16.50.1 | Dedicated IP phone segment with QoS priority | 
+| 60 | Servers | 172.16.60.0/25 | 126 hosts | 172.16.60.1 | Data center servers, dedicated DHCP server, and network controller |
+| 70 | Management | 172.16.70.0/26 | 62 hosts | 172.16.70.1 | Network device management interfaces across all switches and router |
+
+All VLANs trunked across the backbone using IEEE 802.1Q encapsulation and terminated at Layer 3 switch where inter-VLAN routing is performed via Switch Virtual Interfaces. The management VLAN 70 is assigned dedicated management IP addresses to each network device, enabling centralized remote management without relying on out-of-band access.
+
+| Device | Management IP |
+| ------ | ------------- |
+| Switch Layer 3 | 172.16.70.1 |
+| Servers Switch | 172.16.70.2 |
+| Switch Lantai 1-5 | 172.16.70.3 |
+| Switch Lantai 6-10 | 172.16.70.4 |
+| Network Controller | 172.16.70.5 |
+| Router Core | 172.16.70.6 |
+
 ## Configuration Highlights
+
+
 ## Simulation Limitations
 ## Future Considerations
 ## Lessons Learned
