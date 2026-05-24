@@ -98,8 +98,125 @@ All VLANs trunked across the backbone using IEEE 802.1Q encapsulation and termin
 | Router Core | 172.16.70.6 |
 
 ## Configuration Highlights
+__Inter-VLAN Routing via Switch Virtual Interfaces__ <br>
+Inter-VLAN routing is handled entirely by the Layer 3 switch through Switch Virtual Interfaces, one per VLAN, each configured with the gateway address for its respective subnet. The critical command that enables this is ip routing on the Layer 3 switch, which activates Layer 3 forwarding capability and allows the switch to route between VLANs without involving the router.
 
+```
+ip routing
+
+interface vlan 10
+  ip address 172.16.10.1 255.255.255.0
+
+interface vlan 60
+  ip address 172.16.60.1 255.255.255.128
+
+interface vlan 70
+  ip address 172.16.70.1 255.255.255.192
+```
+
+__OSPF Configuration__ <br>
+SIngle-area OSPF runs exclusively between the Router Core and the Layer 3 switch, advertising all internal VLAN prefixes from the switch and injecting a default route from the router toward the internet. The router uses `default-information originate` to propagate the default route into the OSPF domain so that all internal devices can reach the internet via a single exit point
+
+```
+! On Layer 3 Switch
+router ospf 1
+ network 172.16.80.0 0.0.0.3 area 0
+ network 172.16.10.0 0.0.0.255 area 0
+ network 172.16.20.0 0.0.0.127 area 0
+ network 172.16.30.0 0.0.0.255 area 0
+ network 172.16.40.0 0.0.0.255 area 0
+ network 172.16.50.0 0.0.0.127 area 0
+ network 172.16.60.0 0.0.0.127 area 0
+ network 172.16.70.0 0.0.0.63 area 0
+
+! On Router Core
+router ospf 1
+ network 172.16.80.0 0.0.0.3 area 0
+ default-information originate
+```
+
+__DHCP Relay Configuration__ <br>
+Because the dedicated DHCP server lives in VLAN 60 and clients exist across multiple VLANS, each SVI requires an `ip helper-address` pointing to the DHCP server so that broadcast DHCP requests are unicast-forwarded to the correct destination. A key lesson learned during implementation was the DHCP used UDP ports 67 and 68, and any ACL applied to an SVI must explicitly permit these ports before any deny rules to avoid silently blocking DHCP discovery traffic.
+
+```
+interface vlan 30
+ ip helper-address 172.16.60.2
+
+interface vlan 40
+ ip helper-address 172.16.60.2
+
+interface vlan 50
+ ip helper-address 172.16.60.2
+```
+
+__Access Control Lists__ <br>
+Three named extended ACLs enforce traffic segmentation at the Layer 3 switch. The most nuanced of the three is BLOCK_GUEST, which must permit UDP ports 67 and 68 before the deny rules to allow guest clients obtain IP addresses from the DHCP server while still blocking all other access to internal networks
+
+```
+ip access-list extended BLOCK_GUEST
+ permit udp any any eq 67
+ permit udp any any eq 68
+ deny ip 172.16.40.0 0.0.0.255 172.16.10.0 0.0.0.255
+ deny ip 172.16.40.0 0.0.0.255 172.16.20.0 0.0.0.127
+ deny ip 172.16.40.0 0.0.0.255 172.16.30.0 0.0.0.255
+ deny ip 172.16.40.0 0.0.0.255 172.16.50.0 0.0.0.127
+ deny ip 172.16.40.0 0.0.0.255 172.16.60.0 0.0.0.127
+ deny ip 172.16.40.0 0.0.0.255 172.16.70.0 0.0.0.63
+ permit ip 172.16.40.0 0.0.0.255 any
+
+interface vlan 40
+ ip access-group BLOCK_GUEST in
+```
+
+__NAT/PAT Configuration__ <br>
+PAT overload translates all internal RFC1918 traffic to a single public IP address on the WAN interface, eliminating the need for multiple rented public address blocks. The access list defines which source addresses are eligible for translation, covering the entire 172.16.0.0/16 private block.
+
+```
+access-list 1 permit 172.16.0.0 0.0.255.255
+ip nat inside source list 1 interface FastEthernet0/0 overload
+
+interface FastEthernet0/0
+ ip nat outside
+
+interface GigabitEthernet0/1/0
+ ip nat inside
+
+interface GigabitEthernet0/2/0
+ ip nat inside
+```
+
+__VoIP via Cisco Call Manager Express__ <br>
+Cisco CME on the Router Core provides call control for IP phones in the network. DHCP option 150 in the VLAN 50 pool points phones to the CME source address so they can register automatically after obtaining an IP address.
+
+```
+telephony-service
+ max-ephones 10
+ max-dn 10
+ ip source-address 172.16.50.254 port 2000
+ auto assign 1 to 10
+
+ephone-dn 1
+ number 101
+
+ephone-dn 2
+ number 102
+```
 
 ## Simulation Limitations
+Cisco Packet Tracer imposes several constraints that differ from real-world deployment, and documenting them honestly is part of treating this project as a genuine engineering proposal rather than a simulation exercise.
+The first limitation concerns physical media. All backbone connections are represented using copper gigabit ethernet because the access switches available in Packet Tracer inventory do not have fiber ports. In a real deployment, all backbone connections between the core switch and access switches would use 10 Gigabit Ethernet fiber, while endpoint connections would use 1 Gigabit Ethernet copper. This limitation does not affect the logical configuration or the validity of any protocol behavior observed during testing.
+The second limitation concerns the Network Controller. The PT-Controller device in Packet Tracer serves as a placeholder for centralized network management and can be verified for reachability from the management VLAN, but it does not simulate actual controller functionality such as AP provisioning, SSID push configuration, client monitoring, or CAPWAP tunnel management. In a real deployment, a controller such as Cisco Catalyst Center, Cisco WLC 9800, or equivalent would provide full lifecycle management for all access points from a single interface.
+The third limitation concerns the DHCP server high availability. The production recommendation for a healthcare environment is a primary and secondary DHCP server pair with lease synchronization for failover. Packet Tracer does not support DHCP failover protocol, so only a single dedicated DHCP server is simulated. The architecture is designed to accommodate a secondary server without topology changes.
+The fourth limitation concerns the internet simulation. A standard server device was used to represent the ISP and internet endpoint because Packet Tracer cloud devices do not support direct IP address configuration in a way that is compatible with NAT/PAT testing. The copper straight-through cable was used instead of fiber for this connection due to the same port compatibility constraints described above.
+
 ## Future Considerations
+Two architectural extensions are recommended as phased additions to the current design without requiring changes to the core topology.
+The first is WLAN extension to all floors. The current proposal deploys wireless access points on floors 6 to 10 as required by the case specification. However, floors 1 to 5 also have operational mobility needs for administrative and support staff, and guest network access is practically relevant in lobby areas, waiting rooms, and outpatient clinics that are predominantly located on lower floors. Because every access switch already uses gigabit uplinks and PoE capability, extending WLAN to floors 1 to 5 requires only the addition of access points and SSID configuration with no topology or infrastructure changes.
+The second is DMZ implementation for public-facing services. Healthcare organizations increasingly operate patient portals, appointment booking systems, and public information services that require internet accessibility. Exposing these services directly from the internal server VLAN would be a significant security risk given that the same segment hosts clinical and administrative data. A dedicated DMZ interface on the Router Core with strict firewall rules separating public traffic from internal traffic would allow these services to operate safely without compromising the integrity of the internal network. This is particularly relevant as Harsborough Hospital continues to expand its digital service offerings.
+
 ## Lessons Learned
+This project reinforced several engineering principles that are difficult to internalize from lecture alone and only become clear through hands-on implementation.
+The most significant lesson was that diagnosing the root cause before proposing a solution is the difference between fixing a problem and masking it. The instinct when seeing a poorly performing network is to replace components, and the case brief itself suggested replacing OSPF. Working through the actual topology made it clear that OSPF was functioning correctly and that the bottleneck was architectural. Replacing the protocol without fixing the topology would have produced a marginally different network with the same fundamental problem.
+The second lesson was about ACL interaction with other services. Designing ACLs in isolation is straightforward, but deploying them in a live network reveals interactions that are not obvious from the rules alone. The BLOCK_GUEST ACL initially broke DHCP for guest clients because DHCP operates over UDP ports 67 and 68 and the deny rules were catching DHCP traffic before it could reach the server. Understanding that ACLs process rules sequentially and that service-level permits must precede broad deny rules is a lesson that only registers properly when you have broken something and had to trace why.
+The third lesson was about the gap between simulation and production. Packet Tracer is an effective learning tool but it creates a false sense of completeness. Real enterprise deployments involve considerations that cannot be simulated including physical cable management, hardware compatibility verification, change management procedures, rollback planning, and the operational impact of making configuration changes on a live network serving clinical staff. Documenting simulation limitations explicitly is part of engineering honesty and prepares the mind for the additional complexity of real deployment.
+The fourth lesson was about proportionality in design. There is a constant temptation in network design to implement the most sophisticated solution available, but enterprise architecture is ultimately about matching complexity to actual requirements. Single-area OSPF is less impressive than multi-area but it is the right choice for this scale. A two-tier hierarchy is less elaborate than a full three-tier campus design but it is proportional to a 10-floor hospital with 278 devices. Good design is not the most complex design that works, it is the simplest design that meets the requirements without compromising future growth.
