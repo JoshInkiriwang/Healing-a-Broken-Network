@@ -59,11 +59,11 @@ Given that the original network had zero redundancy and that high availability w
 The network topology is organized into three distinct functional segments connected through a hierarchical core, each serving a dedicated role in the overall architecture. The diagram below represent the proposed topology as simulated in Cisco Packet Tracer.
 
 __Current Topology (Before)__ <br>
-![Current Topology](asset/current_topology.png) <br>
+![Current Topology](topology/current_topology.png) <br>
 The current topology shows all ten floor segments connecting directly to a single core router that simultaneously handles WAN connectivity, with no Layer 3 Switching, no redundancy, and no segmentation beyond per-floor subnets.
 
 __Proposed Topology (After)__ <br>
-![Proposed Topology](asset/proposed_topology.png) <br>
+![Proposed Topology](topology/proposed_topology.png) <br>
 The proposed topology introduces a clear three-device hierarchy where the router handles only WAN and NAT/PAT, the Layer 3 switch handles all inter-VLAN routing and internal forwarding, and access switches serve their respective segments with redundant uplinks throughout the backbone. All port assignments and connection labels are documented directly on the topology diagram for clarity.
 
 __Port Mapping Reference__ <br>
