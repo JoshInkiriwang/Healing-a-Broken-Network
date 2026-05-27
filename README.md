@@ -19,9 +19,11 @@ The IP addressing was also wasteful. Each floor was assigned a ful public Class 
 ## Proposed Architecture
 The redesign replaces the flat single-router topology with a two-tier hierarchical design. A Cisco 2811 router sits at the top and only handles WAN connectivy and NAT/PAT. Below it, a Cisco 3650-24 PS Layer 3 switch takes care of all inter-VLAN routing via Switch Virtual Interface (SVI) and runs single-area OSPF with the router for dynamic route exchange.
 
-Three access switches sit at the bottom, each serving a dedicated segment of the network. The Servers Switch connects the 15-server data center clust along with the dedicated DHCP server and Network Controller. The Floor 1 to 5 Switch serves administrative and operational staff with wired access and VoIP. The Floor 6 to 10 Switch serves the inpatient department with clinical workstations, IP phones, and wireless access point for staff and guest WLAN coverage. All backbone connections between the core switch and access switch use redundant gigabit uplinks managed by Spanning Tree Protocol, providing automatic failover in the event of a link failure without manual intervention.
+Three access switches sit at the bottom, each serving a dedicated segment of the network. The Servers Switch connects the 15-server data center clust along with the dedicated DHCP server and Network Controller. The Floor 1 to 5 Switch serves administrative and operational staff with wired access and VoIP. The Floor 6 to 10 Switch serves the inpatient department with clinical workstations, IP phones, and wireless access point for staff and guest WLAN. 
 
-The router is deliberately kept out of internal routing decisions. All inter-VLAN traffic is handled locally by the Layer 3 switch, meaning clinical staff accessing electronic health records, radiology systems, or patient information never experience the latency of traversing a WAN-edge device for internal requests. The router only processes traffic that is genuinely destined for the internet, which is then translated via PAT to a single public IP address before leaving the network, eliminating the need for multiple rented public address blocks from the ISP.
+All backbone connections between the core switch and access switch use redundant gigabit uplinks managed by Spanning Tree Protocol, so if onelink fails, the other takes over automatically.
+
+The router stays out of internal routing decisions. All Inter-VLAN traffic is handled locally by the Layer 3 switch, The router only processes traffic going to the internet, which is then translated via PAT to a single public IP address, so the hospital no longer needs multiple rented public address blocks from the ISP
 
 ## Key Design Decisions
 __Keeping OSPF Instead of Replacing It__ <br>
