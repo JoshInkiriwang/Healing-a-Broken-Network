@@ -165,19 +165,11 @@ __Access Control Lists__ <br>
 Three named extended ACLs enforce traffic segmentation at the Layer 3 switch. The most nuanced of the three is BLOCK_GUEST, which must permit UDP ports 67 and 68 before the deny rules to allow guest clients obtain IP addresses from the DHCP server while still blocking all other access to internal networks
 
 ```
-ip access-list extended BLOCK_GUEST
- permit udp any any eq 67
- permit udp any any eq 68
- deny ip 172.16.40.0 0.0.0.255 172.16.10.0 0.0.0.255
- deny ip 172.16.40.0 0.0.0.255 172.16.20.0 0.0.0.127
- deny ip 172.16.40.0 0.0.0.255 172.16.30.0 0.0.0.255
- deny ip 172.16.40.0 0.0.0.255 172.16.50.0 0.0.0.127
- deny ip 172.16.40.0 0.0.0.255 172.16.60.0 0.0.0.127
- deny ip 172.16.40.0 0.0.0.255 172.16.70.0 0.0.0.63
- permit ip 172.16.40.0 0.0.0.255 any
-
-interface vlan 40
- ip access-group BLOCK_GUEST in
+Extended IP access list BLOCK_GUEST
+    10 permit udp any host 255.255.255.255 eq bootps
+    20 permit udp any host 172.16.60.2 eq bootps
+    30 deny ip 172.16.40.0 0.0.0.255 172.16.0.0 0.0.255.255
+    40 permit ip 172.16.40.0 0.0.0.255 anyn
 ```
 
 __NAT/PAT Configuration__ <br>
