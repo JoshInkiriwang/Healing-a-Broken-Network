@@ -96,10 +96,24 @@ All tests were conducted in Cisco Packet Tracer using ping, automatic DHCP assig
 | VoIP to servers | VLAN 50 VoIP | VLAN 60 Servers | Ping | Denied |
 | Staff to management | VLAN 10 Staff | VLAN 70 Management | Ping | Success |
 | Guest to management | VLAN 40 Guest | VLAN 70 Management | Ping | Denied |
-| OSPF neighbor | Router Core | Layer 3 Switch | show ip ospf neighbor | Established |
 | VoIP registration | IP Phone 101, 102 | CME (Router Core) | Phone registration | Registered |
 | VoIP call | Extension 101 | Extension 102 | Call simulation | Connected |
 | Internal to internet | All VLANs | Internet via PAT | Ping | Success |
+| OSPF neighbor | Router Core | Layer 3 Switch | show ip ospf neighbor | Established|
+```
+core_router#show ip ospf neighbor 
+
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+172.16.80.6       1   2WAY/DROTHER    00:00:37    172.16.80.2     GigabitEthernet0/1/0
+172.16.80.6       1   2WAY/DROTHER    00:00:37    172.16.80.6     GigabitEthernet0/2/0
+
+core_sw#show ip ospf neighbor 
+
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+172.16.50.254     1   FULL/BDR        00:00:35    172.16.80.1     GigabitEthernet1/1/1
+172.16.50.254     1   FULL/BDR        00:00:35    172.16.80.5     GigabitEthernet1/1/2|
+
+```
 
 ---
 
